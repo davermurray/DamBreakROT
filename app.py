@@ -107,7 +107,8 @@ chart_q = alt.Chart(plot_df).mark_line(point=True).encode(
     color='Method:N'
 ).properties(width=700, height=350)
 st.altair_chart(chart_q, use_container_width=True)
-st.markdown("Wave Height in Downstream calculations is assumed to be 40% of Dam Breach head")
+
+st.markdown("Wave Height in downstream calculations is assumed to be 40% of Dam Breach Head")
 
 # Estimated Depth Plot
 st.markdown("#### 📈 Estimated Depth vs. Distance")
