@@ -1,1 +1,1 @@
-This APP is a quick development of the Dam Break Rules of Thuumb to allow enabling embeded funtions. Author is not liable for misuse or any use. 
+This app is a quick development of the Dam Break Rules of Thumb (developed for LMRFC) to allow enabling embeded funtions. 
