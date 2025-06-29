@@ -23,15 +23,25 @@ Bv = 1.5 * Dh_ft  # in feet
 # MacDonald & Langridge-Monopolis breach width (example formula)
 Bm = (0.5 * math.log10(Dv_m3)) + (0.6 * Dh_ft) + 0.5  # in feet
 
-# Breach Formation Time 
+# Breach Formation Time (converted to minutes)
 Tf_froehlich = 0.00254 * (Dv_m3 ** 0.53) * (Dh_m ** -0.90) * 60
 Tf_von_thun = 0.0178 * (Dh_m ** 1.4) * 60
 Tf_smpdbk = 0.0179 * (Dv_m3 ** 0.37) * 60
+
+# Peak outflow estimates
+Qp_froehlich = 0.607 * (Dv_m3 ** 0.295) * (Dh_m ** 1.24)       # m³/s
+Qp_von_thun = 3.1 * Bv * (Dh_ft ** 1.5)                        # ft³/s
+Qp_smpdbk = 1.4 * (Dv_acft ** 0.5) * (Dh_ft ** 1.5)            # ft³/s
+
+# Convert Froehlich Qp from m³/s to ft³/s
+Qp_froehlich_cfs = Qp_froehlich * 35.3147
+
 # Round results
 results = {
     "Method": ["Froehlich", "Von Thun & Gillette", "MacDonald (SMPDK)"],
     "Breach Width (ft)": [round(Bf, 2), round(Bv, 2), round(Bm, 2)],
-    "Formation Time (hr)": [round(Tf_froehlich, 2), round(Tf_von_thun, 2), round(Tf_smpdbk, 2)]
+    "Formation Time (hr)": [round(Tf_froehlich, 2), round(Tf_von_thun, 2), round(Tf_smpdbk, 2)],
+    "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_von_thun, 2), round(Qp_smpdbk, 2)]
 }
 
 df = pd.DataFrame(results)
