@@ -120,7 +120,7 @@ results = {
 
 results_dstrm = []
 for method_name, q_peak in [
-    ("Froehlich", Qp_froehlich),
+    ("Froehlich", Qp_froehlich_cfs),
     ("Von Thun & Gillette", Qp_von_thun),
     ("SMPDBK", Qp_smpdbk),
 ]:
