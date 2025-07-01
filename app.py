@@ -3,6 +3,22 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
+import requests
+
+def dam_get(input=None):
+    if input != None or len(input) > 0:        
+        query = requests.get("https://nid.sec.usace.army.mil/api/suggestions?text="+str(input)).json()
+    else:
+        query = None
+    return query
+
+def dam_inventory(id=None):
+    if id != None:
+        inventory = requests.get("https://nid.sec.usace.army.mil/api/dams/"+str(id)+"/inventory").json()
+    else:
+        inventory = None
+    return inventory
+
 st.markdown("""
         <style>
                .block-container {
@@ -18,15 +34,51 @@ st.title("Dam Break Rules of Thumb")
 st.markdown("Based on dambrk_rules_of_thumb.py from LMRFC")
 
 # Inputs
+
+Dh_ft_default = 30.0
+Dv_acft_default = 1000.0
+fedId_default = None
+
+dam_input = st.text_input("Dam Name:",value="None")
+dam_suggests = dam_get(dam_input)
+#st.write(dam_suggests.keys())
+
+if isinstance(dam_suggests, dict) and "dams" in dam_suggests.keys() and dam_suggests["dams"]:
+    dam_suggestion_df = pd.DataFrame(dam_suggests["dams"]).head(10)
+    st.dataframe(dam_suggestion_df,use_container_width=True, hide_index=True) 
+#st.write(dam_suggests)
+    #dam_name_id = (dam_df.id.values + Dam)
+    dam_id = st.selectbox("Select from Dams found in search:", dam_suggestion_df.name.values)
+    #st.write(dam_id)
+    fedId_default = dam_suggestion_df[dam_suggestion_df.name == dam_id].federalId.values[0]
+
+fedId = st.text_input("NID Id",value=fedId_default)
+
+#st.write("NID Id:", fedId)
+
+
+if fedId != None: 
+    dam_query = dam_inventory(fedId)
+    #st.write(dam_query)
+    dam_df = pd.DataFrame(dam_query, index = [0])
+    dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea']
+    try:
+       st.dataframe(dam_df[dfcols],use_container_width=True, hide_index=True)
+       Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
+       Dv_acft_default = dam_df['maxStorage'].values[0].astype(float)
+    except:
+        st.write('No Dam found.')
+
+
 col1, col2 = st.columns(2)
 
 with col1:
     dam_type = st.selectbox("Dam Type", ["Earthen", "Concrete Gravity", "Concrete Arch"])
-    Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=30.0, step=1.0)    
+    Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=Dh_ft_default, step=1.0)    
 
 with col2:
-    failure_mode = st.selectbox("Failure Mode", ["Piping", "Overtopping"])
-    Dv_acft = st.number_input("Reservoir Volume (acre-ft)", min_value=0.0, value=1000.0, step=10.0)
+    failure_mode = st.selectbox("Failure Mode", ["Overtopping","Piping"])
+    Dv_acft = st.number_input("Reservoir Volume (acre-ft)", min_value=0.0, value=Dv_acft_default, step=10.0)
 
 downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0, value=10, step=1)
 
