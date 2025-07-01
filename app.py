@@ -6,7 +6,7 @@ import altair as alt
 import requests
 
 def dam_get(input=None):
-    if input != None or len(input) > 0:        
+    if input != None or len(input) > 0 or input != "None":        
         query = requests.get("https://nid.sec.usace.army.mil/api/suggestions?text="+str(input)).json()
     else:
         query = None
@@ -34,27 +34,22 @@ st.title("Dam Break Rules of Thumb")
 st.markdown("Based on dambrk_rules_of_thumb.py from LMRFC")
 
 # Inputs
-
 Dh_ft_default = 30.0
 Dv_acft_default = 1000.0
 fedId_default = None
 
-dam_input = st.text_input("Dam Name:",value="None")
+dam_input = st.text_input("Dam Name NID Search:",value="")
 dam_suggests = dam_get(dam_input)
-#st.write(dam_suggests.keys())
+
 
 if isinstance(dam_suggests, dict) and "dams" in dam_suggests.keys() and dam_suggests["dams"]:
-    dam_suggestion_df = pd.DataFrame(dam_suggests["dams"]).head(10)
+    dam_suggestion_df = pd.DataFrame(dam_suggests["dams"]).head(10) #limited to top 10
     st.dataframe(dam_suggestion_df,use_container_width=True, hide_index=True) 
-#st.write(dam_suggests)
-    #dam_name_id = (dam_df.id.values + Dam)
     dam_id = st.selectbox("Select from Dams found in search:", dam_suggestion_df.name.values)
-    #st.write(dam_id)
     fedId_default = dam_suggestion_df[dam_suggestion_df.name == dam_id].federalId.values[0]
 
+#Set the federal Id - manually or through the search above as default
 fedId = st.text_input("NID Id",value=fedId_default)
-
-#st.write("NID Id:", fedId)
 
 
 if fedId != None: 
