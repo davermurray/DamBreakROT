@@ -2,7 +2,7 @@ import streamlit as st
 import streamlit.components.v1 as components
 #import folium
 #from streamlit_folium import st_folium
-
+import json
 #import math
 import pandas as pd
 import numpy as np
@@ -28,7 +28,26 @@ def dam_get(input=None):
 def dam_inventory(id=None):
     if id != None:
         try:
+            #added external_risk inventory to get the structure type as the integer damTypeIds field has no metadata
             inventory = requests.get("https://nid.sec.usace.army.mil/api/dams/"+str(id)+"/inventory").json()
+            inventory_external_risk = requests.get("https://nid.sec.usace.army.mil/api/dams/"+str(id)+"/external-risk-inventory").json()
+        except requests.exceptions.Timeout:
+            exception_msg = ":red[NID query timed out. Verify NID website is available.]"
+        except:
+            exception_msg = ":red[Could not connect to NID, enter Dam information manually.]"
+        st.write(inventory)
+        combined_dict = inventory | inventory_external_risk
+        #inventorydf = pd.DataFrame([inventory[inventory_fields], inventory_external_risk[risk_fields]])
+    else:
+        combined_dict = None
+    
+    return combined_dict, exception_msg
+
+def dam_external_risk(id=None):
+    exception_msg = False
+    if id != None:
+        try:
+            inventory = requests.get("https://nid.sec.usace.army.mil/api/dams/"+str(id)+"/external-risk-inventory").json()
         except requests.exceptions.Timeout:
             exception_msg = ":red[NID query timed out. Verify NID website is available.]"
         except:
@@ -73,12 +92,14 @@ fedId = st.text_input("NID Id",value=fedId_default)
 
 
 if fedId != None: 
-    dam_query = dam_inventory(fedId)
+    dam_query, exception_msg = dam_inventory(fedId)
+    if exception_msg:
+        st.caption(exception_msg)
     #st.write(dam_query)
     dam_df = pd.DataFrame(dam_query, index = [0])
-    dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea']
+    dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea','structureType']
     try:
-       st.dataframe(dam_df[dfcols],use_container_width=True, hide_index=True)
+       st.dataframe(dam_df,use_container_width=True, hide_index=True)
        Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
        Dv_acft_default = dam_df['maxStorage'].values[0].astype(float)
     except:
@@ -128,7 +149,7 @@ Qp_froehlich_cfs = Qp_froehlich * 35.3147
 
 # Round results
 results = {
-    "Method": ["Froehlich", "MacDonald (SMPDK)","Von Thun & Gillette" ],
+    "Method": ["Froehlich", "SMPDBK","Von Thun & Gillette" ],
     "Breach Width (ft)": [round(Bf, 2),round(Bm, 2),round(Bv, 2)],
     "Formation Time (min)": [round(Tf_froehlich, 2), round(Tf_smpdbk, 2), round(Tf_von_thun, 2)],
     "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_smpdbk, 2),"N/A"]
@@ -163,11 +184,16 @@ tab1, tab2 = st.tabs(["Results", "Equation Information"])
 
 with tab1:
     #st.markdown("#### Results")
+    st.markdown("##### Breach Width, Formation Time, and Peak Outflow")
     st.dataframe(df, use_container_width=True, hide_index=True)
+    #Print downstream Q and height df
+    st.markdown("##### Downstream Peak Discharge and Height Estimate")
+    st.caption("Initial wave height in downstream calculations is assumed to be 40% of Dam Breach Head")
 
+    st.dataframe(downstream_df[downstream_df['Mile'] == downstream_mileage],use_container_width=True, hide_index=True)
 #Equation infomation Tabs
 with tab2:
-    st.write('Below information is taken directly from LMRFC Dam Break ROT Python code.')
+    st.write('Below information is taken directly from LMRFC Dam Break ROT')
     with st.expander("Froehlich"):
         file_content_bp = read_text_file("docs/bpFroehlich.hlp")  
         st.markdown(file_content_bp)
@@ -181,12 +207,11 @@ with tab2:
     with st.expander("Van Thun & Gillete"):
         file_content_bp = read_text_file("docs/bpVTG.hlp")  
         st.markdown(file_content_bp)
-    with st.expander("Downstream Peak Flow and Height"):
+    with st.expander("Downstream Peak Discharge and Height"):
         file_content_bp = read_text_file("docs/pfDownstream.hlp")  
         st.markdown(file_content_bp)  
 
-#Print downstream Q and height df
-st.dataframe(downstream_df[downstream_df['Mile'] == downstream_mileage],use_container_width=True, hide_index=True)
+
 
 # Prepare Altair-compatible data
 plot_df = downstream_df.copy()
@@ -201,8 +226,6 @@ chart_q = alt.Chart(plot_df).mark_line(point=True).encode(
     color='Peak Q Formula:N'
 ).properties(width=700, height=350)
 st.altair_chart(chart_q, use_container_width=True)
-
-st.markdown("Wave Height in downstream calculations is assumed to be 40% of Dam Breach Head")
 
 # Estimated Depth Plot
 #st.markdown("#### 📈 Estimated Depth vs. Distance")
