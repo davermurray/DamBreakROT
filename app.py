@@ -9,6 +9,10 @@ import numpy as np
 import altair as alt
 import requests
 
+def read_text_file(file_path):
+    with open(file_path, "r") as file:
+        return file.read()
+
 def dam_get(input=None):
     query = None
     exception_msg = False
@@ -44,7 +48,7 @@ st.markdown("""
         </style>
         """, unsafe_allow_html=True)
 
-st.title("Dam Break Rules of Thumb")
+st.markdown("## Dam Break Rules of Thumb")
 st.markdown("An experimental interface with NID to quickly run the LMRFC ROT.")
 
 # Inputs
@@ -91,7 +95,7 @@ with col2:
     failure_mode = st.selectbox("Failure Mode", ["Overtopping","Piping"])
     Dv_acft = st.number_input("Reservoir Volume (acre-ft)", min_value=0.0, value=Dv_acft_default, step=10.0)
 
-downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0, value=10, step=1)
+downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0.0, value=10.0, step=0.1)
 
 # Constants and conversions
 Dv_m3 = Dv_acft * 1233.48  # Convert to cubic meters
@@ -116,7 +120,7 @@ Tf_smpdbk = 0.0179 * (Dv_m3 ** 0.37) * 60
 
 # Peak outflow estimates
 Qp_froehlich = 0.607 * (Dv_m3 ** 0.295) * (Dh_m ** 1.24)       # m³/s
-Qp_von_thun = 3.1 * Bv * (Dh_ft ** 1.5)                        # ft³/s
+#Qp_von_thun = 3.1 * Bv * (Dh_ft ** 1.5)                        # ft³/s
 Qp_smpdbk = 1.4 * (Dv_acft ** 0.5) * (Dh_ft ** 1.5)            # ft³/s
 
 # Convert Froehlich Qp from m³/s to ft³/s
@@ -127,7 +131,7 @@ results = {
     "Method": ["Froehlich", "MacDonald (SMPDK)","Von Thun & Gillette" ],
     "Breach Width (ft)": [round(Bf, 2),round(Bm, 2),round(Bv, 2)],
     "Formation Time (min)": [round(Tf_froehlich, 2), round(Tf_smpdbk, 2), round(Tf_von_thun, 2)],
-    "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_smpdbk, 2),round(Qp_von_thun, 2)]
+    "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_smpdbk, 2),"N/A"]
 }
 
 
@@ -137,10 +141,10 @@ results = {
 results_dstrm = []
 for method_name, q_peak in [
     ("Froehlich", Qp_froehlich_cfs),
-    ("Von Thun & Gillette", Qp_von_thun),
+   # ("Von Thun & Gillette", Qp_von_thun),
     ("SMPDBK", Qp_smpdbk),
 ]:
-    for mile in range(0, downstream_mileage + 1):
+    for mile in np.append(np.arange(0, downstream_mileage,0.1),downstream_mileage):
         Qd = 10 ** (np.log10(q_peak) - 0.03 * mile)
         depth = 10 ** (np.log10(Dh_ft * .4 ) - 0.03 * mile) # same logic as before
         results_dstrm.append({
@@ -151,6 +155,7 @@ for method_name, q_peak in [
         })
 
 downstream_df = pd.DataFrame(results_dstrm)
+#st.dataframe(downstream_df.iloc[-2:],use_container_width=True, hide_index=True) 
 
 df = pd.DataFrame(results)
 
@@ -160,30 +165,32 @@ with tab1:
     #st.markdown("#### Results")
     st.dataframe(df, use_container_width=True, hide_index=True)
 
+#Equation infomation Tabs
 with tab2:
-    with st.expander("Breach Width and Formation"):
-        st.write('''
-        The chart above shows some numbers I picked for you.
-        I rolled actual dice for these, so they're *guaranteed* to
-        be random.
-        ''')
-    with st.expander("Peak Outflow"):
-        st.write('''
-        The chart above shows some numbers I picked for you.
-        I rolled actual dice for these, so they're *guaranteed* to
-        be random.
-        ''')
-    with st.expander("Downstream Peak and Height"):
-        st.write('''
-        The chart above shows some numbers I picked for you.
-        I rolled actual dice for these, so they're *guaranteed* to
-        be random.
-        ''')
+    st.write('Below information is taken directly from LMRFC Dam Break ROT Python code.')
+    with st.expander("Froehlich"):
+        file_content_bp = read_text_file("docs/bpFroehlich.hlp")  
+        st.markdown(file_content_bp)
+        file_content_pf = read_text_file("docs/pfFroehlich.hlp") 
+        st.write(file_content_pf)
+    with st.expander("Simplified Dam Break"):
+        file_content_bp = read_text_file("docs/bpSMPDBK.hlp")  
+        st.markdown(file_content_bp)
+        file_content_pf = read_text_file("docs/pfSMPDBK.hlp") 
+        st.write(file_content_pf)
+    with st.expander("Van Thun & Gillete"):
+        file_content_bp = read_text_file("docs/bpVTG.hlp")  
+        st.markdown(file_content_bp)
+    with st.expander("Downstream Peak Flow and Height"):
+        file_content_bp = read_text_file("docs/pfDownstream.hlp")  
+        st.markdown(file_content_bp)  
 
+#Print downstream Q and height df
+st.dataframe(downstream_df[downstream_df['Mile'] == downstream_mileage],use_container_width=True, hide_index=True)
 
 # Prepare Altair-compatible data
 plot_df = downstream_df.copy()
-plot_df["Mile"] = plot_df["Mile"].astype(int)
+plot_df["Mile"] = round(plot_df["Mile"],2)
 plot_df['Peak Q Formula'] = plot_df['Method']
 
 # Peak Discharge Plot
