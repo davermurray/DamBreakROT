@@ -154,9 +154,32 @@ downstream_df = pd.DataFrame(results_dstrm)
 
 df = pd.DataFrame(results)
 
-st.markdown("#### Results")
-st.dataframe(df, use_container_width=True, hide_index=True)
-#st.markdown(results)
+tab1, tab2 = st.tabs(["Results", "Equation Information"])
+
+with tab1:
+    #st.markdown("#### Results")
+    st.dataframe(df, use_container_width=True, hide_index=True)
+
+with tab2:
+    with st.expander("Breach Width and Formation"):
+        st.write('''
+        The chart above shows some numbers I picked for you.
+        I rolled actual dice for these, so they're *guaranteed* to
+        be random.
+        ''')
+    with st.expander("Peak Outflow"):
+        st.write('''
+        The chart above shows some numbers I picked for you.
+        I rolled actual dice for these, so they're *guaranteed* to
+        be random.
+        ''')
+    with st.expander("Downstream Peak and Height"):
+        st.write('''
+        The chart above shows some numbers I picked for you.
+        I rolled actual dice for these, so they're *guaranteed* to
+        be random.
+        ''')
+
 
 # Prepare Altair-compatible data
 plot_df = downstream_df.copy()
