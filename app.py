@@ -1,4 +1,8 @@
 import streamlit as st
+import streamlit.components.v1 as components
+#import folium
+#from streamlit_folium import st_folium
+
 #import math
 import pandas as pd
 import numpy as np
@@ -6,15 +10,25 @@ import altair as alt
 import requests
 
 def dam_get(input=None):
+    query = None
+    exception_msg = False
     if input != None or len(input) > 0 or input != "None":        
-        query = requests.get("https://nid.sec.usace.army.mil/api/suggestions?text="+str(input)).json()
-    else:
-        query = None
-    return query
+        try:
+            query = requests.get("https://nid.sec.usace.army.mil/api/suggestions?text="+str(input),timeout=5).json()
+        except requests.exceptions.Timeout:
+            exception_msg = ":red[NID query timed out. Verify NID website is available.]"
+        except:
+            exception_msg = ":red[Could not connect to NID, enter Dam information manually.]"       
+    return query, exception_msg
 
 def dam_inventory(id=None):
     if id != None:
-        inventory = requests.get("https://nid.sec.usace.army.mil/api/dams/"+str(id)+"/inventory").json()
+        try:
+            inventory = requests.get("https://nid.sec.usace.army.mil/api/dams/"+str(id)+"/inventory").json()
+        except requests.exceptions.Timeout:
+            exception_msg = ":red[NID query timed out. Verify NID website is available.]"
+        except:
+            exception_msg = ":red[Could not connect to NID, enter Dam information manually.]"
     else:
         inventory = None
     return inventory
@@ -31,15 +45,17 @@ st.markdown("""
         """, unsafe_allow_html=True)
 
 st.title("Dam Break Rules of Thumb")
-st.markdown("Based on dambrk_rules_of_thumb.py from LMRFC")
+st.markdown("An experimental interface with NID to quickly run the LMRFC ROT.")
 
 # Inputs
 Dh_ft_default = 30.0
 Dv_acft_default = 1000.0
 fedId_default = None
 
-dam_input = st.text_input("Dam Name NID Search:",value="")
-dam_suggests = dam_get(dam_input)
+dam_input = st.text_input("Dam NID Search:",value="")
+dam_suggests, search_exception = dam_get(dam_input)
+if search_exception:
+    st.caption(search_exception)
 
 
 if isinstance(dam_suggests, dict) and "dams" in dam_suggests.keys() and dam_suggests["dams"]:
@@ -110,7 +126,7 @@ Qp_froehlich_cfs = Qp_froehlich * 35.3147
 results = {
     "Method": ["Froehlich", "MacDonald (SMPDK)","Von Thun & Gillette" ],
     "Breach Width (ft)": [round(Bf, 2),round(Bm, 2),round(Bv, 2)],
-    "Formation Time (hr)": [round(Tf_froehlich, 2), round(Tf_smpdbk, 2), round(Tf_von_thun, 2)],
+    "Formation Time (min)": [round(Tf_froehlich, 2), round(Tf_smpdbk, 2), round(Tf_von_thun, 2)],
     "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_smpdbk, 2),round(Qp_von_thun, 2)]
 }
 
@@ -145,26 +161,27 @@ st.dataframe(df, use_container_width=True, hide_index=True)
 # Prepare Altair-compatible data
 plot_df = downstream_df.copy()
 plot_df["Mile"] = plot_df["Mile"].astype(int)
+plot_df['Peak Q Formula'] = plot_df['Method']
 
 # Peak Discharge Plot
 st.markdown("#### 📉 Peak Discharge vs. Distance")
 chart_q = alt.Chart(plot_df).mark_line(point=True).encode(
     x=alt.X('Mile:O', title='Distance Downstream (miles)'),
     y=alt.Y('Peak Discharge (cfs):Q'),
-    color='Method:N'
+    color='Peak Q Formula:N'
 ).properties(width=700, height=350)
 st.altair_chart(chart_q, use_container_width=True)
 
 st.markdown("Wave Height in downstream calculations is assumed to be 40% of Dam Breach Head")
 
 # Estimated Depth Plot
-st.markdown("#### 📈 Estimated Depth vs. Distance")
+#st.markdown("#### 📈 Estimated Depth vs. Distance")
 chart_h = alt.Chart(plot_df).mark_line(point=True).encode(
     x=alt.X('Mile:O', title='Distance Downstream (miles)'),
     y=alt.Y('Estimated Depth (ft):Q'),
     color='Method:N'
 ).properties(width=700, height=350)
-st.altair_chart(chart_h, use_container_width=True)
+#st.altair_chart(chart_h, use_container_width=True)
 
 st.markdown("---")
 st.markdown("This tool is based on empirical methods for estimating dam breach parameters. \n To be updated with equations and assumptions.")
