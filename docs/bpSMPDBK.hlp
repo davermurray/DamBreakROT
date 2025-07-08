@@ -1,0 +1,34 @@
+<----------------------SMPDBK BREACH WIDTH INFORMATION-------------->
+
+THE NWS SIMPLIED DAM-BREAK MODEL USES DEFAULT "RULES OF THUMB" VALUES
+FOR BREACH WIDTH BASED UPON THE TYPE OF DAM. THEY ARE AS FOLLOWS:  
+
+EARTHEN DAM:		B = 3 x H
+CONCRETE GRAVITY DAM	B = 5 x H
+CONCRETE ARCH DAM	B = 0.9 x W
+	
+WHERE
+
+B = Breach Width (ft)
+H = Breach Head (ft) - defined as Depth of Water at time of Breach
+W = Maximum Tailwater Width (Crest Length) of Dam (ft)
+
+<----------------------SMPDBK BREACH TIME INFORMATION-------------->
+
+THE NWS SIMPLIED DAM-BREAK MODEL USES DEFAULT "RULES OF THUMB" VALUES
+FOR BREACH TIME BASED UPON THE TYPE OF DAM. THEY ARE AS FOLLOWS:  
+
+EARTHEN DAM:		T = H/10
+CONCRETE GRAVITY DAM	T = H/40
+CONCRETE ARCH DAM	T = H/50
+	
+WHERE
+
+T = Breach Time (min)
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+Additional information can be found in the document "The NWS Simplified Dam-Break
+Flood forecasting model" by Wetmore J. and Fread, D.; revised in 1991 by Fread, D.,
+    Lewis, Janice and Wiele, S.   
+
+<------------------------------------------------------------------->

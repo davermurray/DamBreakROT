@@ -1,0 +1,29 @@
+<----------------------NWS OHD PEAK OUTFLOW INFORMATION------------->
+
+THE OHD PEAK OUTFLOW EQUATIONS WERE PROVIDED TO THE LMRFC YEARS AGO.
+THEY WERE DEVELOPED BY LEE LARSON AND ARE AS FOLLOWS:
+
+		FOR EARTHEN DAM
+
+Q = 6H * [ C / (0.004H + (C/sqrt(H)))]^3
+
+where the constant C = 0.7WL/H
+
+and
+
+Q = Peak Outflow (cfs)
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+W = Breach Width (ft) 
+L = Reservoir Length (mi)
+
+
+		FOR CONCRETE DAM
+
+Q = 1.6 * W * H^1.5
+
+where
+
+W = Crest (width) of dam (ft)
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+<------------------------------------------------------------------->

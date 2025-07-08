@@ -1,0 +1,41 @@
+<----------TYPICAL REGRESSION BREACH HYDROGRAPH - OVERTOPPING FAILURE----------->
+
+THE FOLLOWING EQUATIONS PRODUCE A TYPICAL REGRESSION BREACH HYDROGRAPH
+RESULTING FROM AN OVERTOPPING BREACH. THE BREACH PEAK FLOW IS
+COMPUTED USING THE FROEHLICH REGRESSION EQUATION. INTERMEDIATE FLOWS ARE
+FROM EQUATIONS PROVIDED BY BY DANNY FREAD AT A FLDWAV WORKSHOP HELD AT 
+OHD IN NOVEMBER, 2006. THEY ARE AS FOLLOWS:
+
+Time To Peak (Tp)
+0.05 < Tp < 0.2
+
+Baseflow Recession Time (Tr)
+Tr = 36.3 * (V / Qp)
+
+Peak Flow (Qp)
+Q = 0.607 (V^0.295 * H^1.24)
+
+Initial Flow/Base Flow After Flood (The plot here uses the minimum)(Qo)
+Qo >= Qp / 200
+
+Recession Flow after Peak (Qr), Before Returning to Baseflow After Flood (Qo)
+Qr = Qo + (Qp - Qo)/6
+
+Recession Time after Peak (Tro), Before Returning to Baseflow After Flood (Tr)
+Tro = Tr/2
+
+where 
+
+V = Volume of the reservoir (acre-ft)
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+***NOTE***
+UNITS OF THE FROEHLICH EQUATION ARE IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+Additional information can be found in the document "Peak Outflow from Breached Embankment Dam" 
+by Froehlich, D.; 1995a in Journal of Water Resources Planning and Management, vol. 121, no. 1, 
+p. 90-97.
+
+<------------------------------------------------------------------->

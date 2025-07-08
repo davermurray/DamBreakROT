@@ -1,0 +1,57 @@
+<----------------------FROEHLICH BREACH WIDTH INFORMATION-------------->
+
+BREACH WIDTH COMPUTED USING EQUATIONS DEVELOPED BY FROEHLICH IN 1995.
+PREDICTOR EQUATIONS WERE DEVELOPED USING REGRESSION ANALYSIS OF 63 HISTORICAL 
+DAM BREAKS. THE EQUATION DERIVED FROM THIS STUDY WAS PREDOMINANTLY BASED UPON
+EARTHEN DAMS UNDER 50FT HIGH.
+
+BREACH WIDTH IS COMPUTED WITH THE FOLLOWING:
+
+Ba = 0.1803 * K * [ (V^0.32) * (H ^0.19) ]
+
+where
+
+K = 1.0 for Piping Failure or K = 1.4 for Overtopping Failure
+Ba = Average Breach Width (m)
+V = Volume of Reservoir (m3)
+H = Breach Head (m) - defined as Depth of Water at time of Breaching 
+
+***NOTE***
+UNITS OF THIS EQUATION IS IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+He also suggests using a breach side slope (h:v) of 1.4 for overtopping failures
+and 0.9 for other failure modes. 
+
+<----------------------FROEHLICH BREACH TIME INFORMATION-------------->
+
+BREACH TIME IS COMPUTED USING EQUATIONS DEVELOPED BY FROEHLICH IN 1995.
+PREDICTOR EQUATIONS WERE DEVELOPED USING REGRESSION ANALYSIS OF 63 HISTORICAL 
+DAM BREAKS. THE EQUATION DERIVED FROM THIS STUDY WAS PREDOMINANTLY BASED UPON
+EARTHEN DAMS UNDER 50FT HIGH.
+
+BREACH TIME IS COMPUTED WITH THE FOLLOWING:
+
+T = (0.00254 * [ V^0.53 * H^-0.9 ]) * 60
+
+where
+
+T = Breach Time (min)
+V = Volume of Reservoir (m3)
+H = Breach Head (m) - defined as Depth of Water at time of Breaching
+
+***NOTE***
+UNITS OF THIS EQUATION IS IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+He also suggests using a breach side slope (h:v) of 1.4 for overtopping failures
+and 0.9 for other failure modes. 
+
+Additional information can be found in the document "Embankment Dam Breach Parameters
+Revisited" by Froehlich, D.; 1995b in Water Resources Engineering, Proceedings of the 
+1995 ASCE Conference on Water Resources Engineering, San Antonio, Texas, August 14-18, 
+1995, p. 887-891.   
+
+<------------------------------------------------------------------->

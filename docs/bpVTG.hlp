@@ -1,0 +1,70 @@
+<----------------------VON THUN & GILLETTE BREACH WIDTH INFORMATION-------------->
+
+BREACH WIDTH COMPUTED USING EQUATIONS DEVELOPED BY VON THUN & GILLETTE.
+PREDICTOR EQUATIONS WERE DEVELOPED USING REGRESSION ANALYSIS OF 57 HISTORICAL 
+DAM BREAKS. 
+
+BREACH WIDTH IS COMPUTED WITH THE FOLLOWING:
+
+Ba= (2.5 * H) + Cb 
+
+where
+
+Ba = Average Breach Width (m)
+H = Breach Head (m) - defined as Depth of Water at time of Breaching 
+Cb = Constant (m) based on Volume of Reservoir (m3) where:
+	Cb = 6.1 when Volume < 1,233,000
+	Cb = 18.3 when Volume 1,233,000 - 6,165,000 
+	Cb = 42.7 when Volume 6,165,000 - 12,330,000
+	Cb = 54.9 when Volume > 12,330,000
+
+They used data from Froehlich (1987) and MacDonald and Langridge-Monopolis (1984) to
+develop guidance for estimating breach slopes, breach width at mid-height, and time 
+to failure. They suggest a breach side slope of 1:1 (h:v) for dams with non-cohesive 
+material, or a breach side slope of 1:2 or 1:3 (h:v) for dams with cohesive shells or
+very wide cohesive cores. 
+
+They also suggest that based upon the database of dam failures that a breach width of
+500ft as the upper limit.
+
+***NOTE***
+UNITS OF THIS EQUATION IS IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+<----------------------VON THUN & GILLETTE BREACH TIME INFORMATION-------------->
+
+BREACH TIME COMPUTED USING EQUATIONS DEVELOPED BY VON THUN & GILLETTE.
+PREDICTOR EQUATIONS WERE DEVELOPED USING REGRESSION ANALYSIS OF 57 HISTORICAL 
+DAM BREAKS. 
+
+BREACH TIME IS COMPUTED WITH THE FOLLOWING:
+
+Erosion Resistant Case
+Tf = 0.02*H + 0.25
+
+Easily Erodible Case
+Tf = 0.015*H
+
+where
+
+Tf = Breach Time (minutes)
+H = Breach Head (m) - defined as Depth of Water at time of Breaching 
+
+They used data from Froehlich (1987) and MacDonald and Langridge-Monopolis (1984) to
+develop guidance for estimating breach slopes, breach width at mid-height, and time 
+to failure. They suggest a breach side slope of 1:1 (h:v) for dams with non-cohesive 
+material, or a breach side slope of 1:2 or 1:3 (h:v) for dams with cohesive shells or
+very wide cohesive cores. 
+
+***NOTE***
+UNITS OF THIS EQUATION IS IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+Additional information can be found in the document "Guidance on Breach Parameters" by 
+Von Thun, J. L. and Gillette, D. R.; Unpublished internal document. U.S. Bureau of
+Reclamation, Denver, Colorado, March 13, 1990.
+
+<------------------------------------------------------------------->
+

@@ -1,0 +1,77 @@
+<----------TYPICAL REGRESSION BREACH HYDROGRAPH - PIPING FAILURE----------->
+
+THE FOLLOWING EQUATIONS PRODUCE A TYPICAL REGRESSION BREACH HYDROGRAPH
+RESULTING FROM A PIPING BREACH. THE BREACH PEAK FLOW AND TIME TO PEAK
+FLOW ARE COMPUTED USING THE FROEHLICH REGRESSION EQUATIONS. INTERMEDIATE 
+FLOWS ARE FROM EQUATIONS PROVIDED BY BY DANNY FREAD AT A FLDWAV WORKSHOP 
+HELD AT OHD IN NOVEMBER, 2006. THEY ARE AS FOLLOWS:
+
+<-----For Scenarios where Hp >= H/2----->
+
+Peak Flow (Qp)
+Q = 0.607 (V^0.295 * H^1.24)
+
+Initial Flow/Base Flow After Flood (The plot here uses the minimum)(Qo)
+Qo >= Qp / 200
+
+Flow at Begining of Primary Breach Formation (Qi)/Recession Flow after Peak (Qr), Before Returning to Baseflow (Qo)
+Qi/Qr = Qo + (Qp - Qo)/5
+
+Time to reach Begining of Primary Breach Formation (Tpo)
+Tpo = 0.9 * Tp
+
+Time To Peak Flow (Tp)
+Tp = 0.3 * (V^0.53 / H^0.9)
+
+Recession Time after Peak (Tro), Before Returning to Baseflow After Flood (Tr)
+Tro = Tp + Tr/4
+
+Recession Time (From Peak back to Baseflow) (Tr)
+Tr = 60.5 * [V / (Qp - (0.75 * Tp)]
+
+Total time to Return to Baseflow (Trf)
+Trf = Tp + Tr
+
+where 
+
+V = Volume of the reservoir (acre-ft)
+Hp  = Height of piping failure at time of breach
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+<------For Scenarios where Hp < H/2----->
+
+Peak Flow (Qp)
+Q = 0.607 (V^0.295 * H^1.24)
+
+Initial Flow/Base Flow After Flood (The plot here uses the minimum)(Qo)
+Qo >= Qp / 200
+
+Time To Peak Flow (Tp)
+Tp = 0.3 * (V^0.53 / H^0.9)
+
+Recession Time (From Initial Peak back to Baseflow) (Tr)
+Tr = 60.5 * [V / (Qp - (0.75 * Tp)]
+
+Time at Peak Flow (Tpf)
+Tpf = Tr/5
+
+Total time to Return to Baseflow (Trf)
+Trf = Tp + Tr
+
+where 
+
+V = Volume of the reservoir (acre-ft)
+Hp  = Height of piping failure at time of breach
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+
+***NOTE***
+UNITS OF THE FROEHLICH EQUATION ARE IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+Additional information can be found in the document "Peak Outflow from Breached Embankment Dam" 
+by Froehlich, D.; 1995a in Journal of Water Resources Planning and Management, vol. 121, no. 1, 
+p. 90-97.
+
+<------------------------------------------------------------------->

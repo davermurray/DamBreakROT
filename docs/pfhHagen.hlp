@@ -1,0 +1,21 @@
+<----------------------HAGEN PEAK OUTFLOW INFORMATION------------->
+
+PEAK OUTLFLOW (Upper Limit of Discharge) COMPUTED USING EQUATIONS 
+DEVELOPED BY HAGEN IN 1982 BY REGRESSION ANALYSIS OF 30 HISTORICAL 
+DAM BREAKS.
+
+ESTIMATED PEAK OUTFLOW IS COMPUTED WITH THE FOLLOWING:
+
+Q = 370 * [V * H]^0.5
+
+where
+
+Q = Peak Outflow (cfs)
+V = Volume of Reservoir (acre-ft)
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+Additional information can be found in the document "Re-evaluation of Design Floods and Dam Safety" 
+by Hagen, V.K.; 1982 in Proceedings, 14th Congress of International Commission on Large Dams,
+Rio de Janeiro.
+
+<------------------------------------------------------------------->

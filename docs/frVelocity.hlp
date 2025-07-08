@@ -1,0 +1,50 @@
+<----------------------FREAD PEAK VELOCITY INFORMATION------------->
+
+THE FREAD VELOCITY EQUATION WAS PROVIDED BY DANNY FREAD AT A FLDWAV
+WORKSHOP HELD AT OHD IN NOVEMBER 2006. FLOOD WAVE VELOCITY ASSOCIATED
+WITH A DAM BREACH IS COMPUTED AS FOLLOWS:
+
+c = (0.005/n) * H^2/3 * S^1/2
+
+where 
+
+c = wave speed (mi/hr)
+n = Manning n
+H = Breach Head (ft)- defined as Depth of Water at time of Breaching
+S = Channel Bottom Slope (ft/mi)
+
+A brief sample of possible manning's "n" values follow, extracted from
+Chow, V.T., "Open Channel Hydraulics", McGraw-Hill, 1959.:
+
+Main Channels
+1) clean, straight channel with no rifts or pools:    0.030
+2) clean, winding, some pools and shoals:             0.040
+3) clean, winding, with stones:                       0.050 
+4) sluggish reaches, weedy, deep pools:               0.070
+5) very weedy reaches, deep pools, floodways 
+     with heavy timber and underbrush:                0.100
+
+Flood Plains
+1) Pasture, no brush:                                 0.030
+2) Cultivated areas (no crops):                       0.030
+3) Cultivated areas (mature field crops):             0.040
+4) Scattered brush with heavy weeds):                 0.050
+5) Light brush and trees (winter):                    0.050
+6) Light brush and trees (summer):                    0.060
+7) Medium to dense brush (winter):                    0.070
+8) Medium to dense brush (summer):                    0.100
+
+Forrest
+1) Dense willows, summer:                             0.150
+2) Cleared land with tree stumps, no sprouts:         0.040
+3) Cleared land with tree stumps, heavy sprouts:      0.060
+4) Heavy timber stand, few downed trees, flood
+      stage below branches:                           0.100
+5) Heavy timber stand, few downed trees, flood
+	stage reaching brancheS:                        0.120	
+
+Additional information can be found in the document: "Guide for selecting Manning's
+Roughness Coefficients for Natural Channels and Flood Plains", by Arcement, G.J.Jr 
+and Schneider, V.R., USGS Water-Supply Paper 2339. 
+
+<------------------------------------------------------------------->

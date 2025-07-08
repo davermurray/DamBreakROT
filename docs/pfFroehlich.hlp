@@ -1,0 +1,27 @@
+<----------------------FROEHLICH PEAK OUTFLOW INFORMATION-------------->
+
+PEAK OUTFLOW IS COMPUTED USING EQUATIONS DEVELOPED BY FROEHLICH IN 1995
+PREDICTOR EQUATIONS WERE DEVELOPED USING REGRESSION ANALYSIS OF 43 HISTORICAL 
+DAM BREAKS. THE EQUATION DERIVED FROM THIS STUDY WAS PREDOMINANTLY BASED UPON
+EARTHEN DAMS UNDER 50FT HIGH.
+
+ESTIMATED PEAK OUTFLOW IS COMPUTED WITH THE FOLLOWING:
+
+Q = 0.607 (V^0.295 * H^1.24)
+
+where
+
+Q = Peak Outflow (m3)
+V = Volume of Reservoir (m3)
+H = Breach Head (m) - defined as Depth of Water at time of Breaching
+
+***NOTE***
+UNITS OF THIS EQUATION IS IN METRIC, CONVERSION IS DONE INTERNALLY TO 
+ENGLISH UNITS FOR CONSISTENCY WITH THE OTHER RELATIONS IN THIS GUI 
+AND WITH THE USACE NID DATABASE
+
+Additional information can be found in the document "Peak Outflow from Breached Embankment Dam" 
+by Froehlich, D.; 1995a in Journal of Water Resources Planning and Management, vol. 121, no. 1, 
+p. 90-97.
+
+<------------------------------------------------------------------->

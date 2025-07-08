@@ -1,0 +1,32 @@
+<----------------------SMPDBK PEAK OUTFLOW INFORMATION-------------->
+
+PEAK OUTFLOW AT THE DAM IS COMPUTED WITH THE FALLING HEAD BROAD-CRESTED 
+WEIR FLOW EQUATION USED BY THE SIMPLIFIED DAM BREAK MODEL (SMPDBK). 
+
+Q = 3.1B * { C / [(t/60) + (C/sqrt(H))] } ^ 3
+
+WHERE THE CONSTANT C = 23.4 S/B
+
+AND 
+
+Q = Peak Outflow (cfs)
+S = Reservoir Surface Area (acre)
+t = Breach Time (min)
+B = Average Breach Width (ft)
+H = Breach Head (ft) - defined as Depth of Water at time of Breaching
+
+
+DEFAULT VALUES USED BY THE SMPDBK CAN BE ESTIMATED AS FOLLOWS:
+
+RESERVOIR SURFACE AREA = 2 x Reservoir Volume / dam height
+BREACH HEAD (H) = Dam crest elevation - the invert (bottom) elevation of the first
+    (tailwater) cross section
+BREACH WIDTH = 3 x height of earthen dam OR 5 x height of gravity dam OR 
+    90% height of concrete arch dam
+BREACH TIME = near 0 for concrete arch dam OR BREACH HEAD (H)/3 for earthen dams
+
+Additional information can be found in the document "The NWS Simplified Dam-Break
+Flood forecasting model" by Wetmore J. and Fread, D.; revised in 1991 by Fread, D.,
+    Lewis, Janice and Wiele, S.   
+
+<------------------------------------------------------------------->
