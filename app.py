@@ -1,9 +1,4 @@
 import streamlit as st
-import streamlit.components.v1 as components
-#import folium
-#from streamlit_folium import st_folium
-import json
-#import math
 import pandas as pd
 import numpy as np
 import altair as alt
@@ -26,6 +21,7 @@ def dam_get(input=None):
     return query, exception_msg
 
 def dam_inventory(id=None):
+    exception_msg = False
     if id != None:
         try:
             #added external_risk inventory to get the structure type as the integer damTypeIds field has no metadata
@@ -35,7 +31,7 @@ def dam_inventory(id=None):
             exception_msg = ":red[NID query timed out. Verify NID website is available.]"
         except:
             exception_msg = ":red[Could not connect to NID, enter Dam information manually.]"
-        st.write(inventory)
+   
         combined_dict = inventory | inventory_external_risk
         #inventorydf = pd.DataFrame([inventory[inventory_fields], inventory_external_risk[risk_fields]])
     else:
@@ -74,8 +70,10 @@ st.markdown("An experimental interface with NID to quickly run the LMRFC ROT.")
 Dh_ft_default = 30.0
 Dv_acft_default = 1000.0
 fedId_default = None
+dam_type_order = ["Earthen", "Concrete Gravity", "Concrete Arch"]
 
 dam_input = st.text_input("Dam NID Search:",value="")
+
 dam_suggests, search_exception = dam_get(dam_input)
 if search_exception:
     st.caption(search_exception)
@@ -83,33 +81,49 @@ if search_exception:
 
 if isinstance(dam_suggests, dict) and "dams" in dam_suggests.keys() and dam_suggests["dams"]:
     dam_suggestion_df = pd.DataFrame(dam_suggests["dams"]).head(10) #limited to top 10
-    st.dataframe(dam_suggestion_df,use_container_width=True, hide_index=True) 
-    dam_id = st.selectbox("Select from Dams found in search:", dam_suggestion_df.name.values)
-    fedId_default = dam_suggestion_df[dam_suggestion_df.name == dam_id].federalId.values[0]
+    damdf_select = st.dataframe(dam_suggestion_df[['name','countyState','federalId']],use_container_width=True, hide_index=True,on_select="rerun",
+    selection_mode="single-row") 
+    if len(damdf_select.selection.rows) > 0:
+        fedId_default = dam_suggestion_df.iloc[damdf_select.selection.rows,[3]].values[0][0]
 
 #Set the federal Id - manually or through the search above as default
 fedId = st.text_input("NID Id",value=fedId_default)
-
 
 if fedId != None: 
     dam_query, exception_msg = dam_inventory(fedId)
     if exception_msg:
         st.caption(exception_msg)
-    #st.write(dam_query)
+  
     dam_df = pd.DataFrame(dam_query, index = [0])
-    dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea','structureType']
+    dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea','structure_types','primary_structure_type_id']
     try:
-       st.dataframe(dam_df,use_container_width=True, hide_index=True)
-       Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
-       Dv_acft_default = dam_df['maxStorage'].values[0].astype(float)
+        inputselect = st.dataframe(dam_df[dfcols],use_container_width=True, hide_index=True,on_select='rerun',selection_mode='multi-column')
+    #Selecting Columns to use in Equations
+        col_names = dam_df[inputselect.selection.columns].columns
+        
+        #Use nidHeight if selected and valid 
+        if 'nidHeight' in col_names and dam_df['nidHeight'].values[0] != None:
+            Dh_ft_default = dam_df['nidHeight'].values[0].astype(float)
+        elif dam_df['damHeight'].values[0] != None:        
+            Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
+
+        #Select Storage (defaults to max)
+        if dam_df['maxStorage'].values[0] != None:
+            Dv_acft_default = dam_df['maxStorage'].values[0].astype(float)
+        for i in ['maxStorage','nidStorage','normalStorage']:
+            if i in col_names and dam_df[i].values[0] != None:
+                Dv_acft_default = dam_df[i].values[0].astype(float)
+                break
+                
+        if dam_df['structure_types'].values[0] != None and str.lower(dam_df['structure_types'].values[0]).find('concrete') >= 0:
+            dam_type_order = ["Concrete Gravity", "Concrete Arch", "Earthen"]
     except:
-        st.write('No Dam found.')
-
-
+        st.write('No Dam found.')  
+        
 col1, col2 = st.columns(2)
 
 with col1:
-    dam_type = st.selectbox("Dam Type", ["Earthen", "Concrete Gravity", "Concrete Arch"])
+    dam_type = st.selectbox("Dam Type", dam_type_order)
     Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=Dh_ft_default, step=1.0)    
 
 with col2:
@@ -182,10 +196,20 @@ df = pd.DataFrame(results)
 
 tab1, tab2 = st.tabs(["Results", "Equation Information"])
 
+def highlight_by_damtype(value):
+    if dam_type == "Earthen" and value == "Froehlich":
+        color = f"background-color: lightgreen;"
+    elif dam_type != "Earthen" and value == "SMPDBK":
+        color = f"background-color: lightgreen;"
+    else:
+        color = None
+    return  color#f"border: red;" if dam_type == "Earthen" and value == "Froehlich" else None
+
 with tab1:
     #st.markdown("#### Results")
     st.markdown("##### Breach Width, Formation Time, and Peak Outflow")
-    st.dataframe(df, use_container_width=True, hide_index=True)
+    st.caption("Prefered equation highlighted in green based on dam type specified.")
+    st.dataframe(df.style.applymap(highlight_by_damtype), use_container_width=True, hide_index=True)
     #Print downstream Q and height df
     st.markdown("##### Downstream Peak Discharge and Height Estimate")
     st.caption("Initial wave height in downstream calculations is assumed to be 40% of Dam Breach Head")
