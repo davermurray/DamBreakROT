@@ -72,8 +72,8 @@ st.markdown("""
         </style>
         """, unsafe_allow_html=True)
 
-st.markdown("## Dam Break Rules of Thumb")
-st.markdown("An experimental interface with NID to quickly run the LMRFC ROT.")
+st.markdown("### Dam Break Rules of Thumb")
+st.caption("An experimental interface with NID to quickly run the LMRFC ROT.")
 
 # Inputs
 Dh_ft_default = 30.0
@@ -147,12 +147,12 @@ if fedId_default != None:
 col1, col2 = st.columns(2)
 
 with col1:
-    dam_type = st.selectbox("Dam Type", dam_type_order)
-    Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=Dh_ft_default, step=1.0)     
-    Dsa_ac = st.number_input("Reservoir Surface Area (acres)", min_value=0.0, value=Dsa_ac_default, step=10.0)
-with col2:
+    dam_type = st.selectbox("Dam Type", dam_type_order)         
     failure_mode = st.selectbox("Failure Mode", ["Overtopping","Piping"])
+    Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=Dh_ft_default, step=1.0)   
+with col2:    
     Dv_acft = st.number_input("Reservoir Volume (acre-ft)", min_value=0.0, value=Dv_acft_default, step=10.0)
+    Dsa_ac = st.number_input("Reservoir Surface Area (acres)", min_value=0.0, value=Dsa_ac_default, step=10.0)
     downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0.0, value=10.0, step=0.1)
 
 with st.expander("Max Tailwater width and Erodibility Inputs"):
@@ -250,12 +250,12 @@ df = df.replace("nan","-")
 tab1, tab2, tab3 = st.tabs(["Breach Width/Timing, Peak Q", "Travel Time", "Equation Information"])
 
 with tab1:    
-    st.markdown("##### Breach Width, Formation Time, and Peak Outflow")
+    st.markdown("##### Breach Width, Formation Time, and Peak Q")
     st.caption("Prefered equation highlighted in green based on dam type specified.")
     st.dataframe(df.style.map(highlight_by_damtype,subset=["Method"]), use_container_width=True, hide_index=True)
     #Print downstream Q and height df
-    st.markdown("##### Downstream Peak Discharge and Height Estimate")
-    st.caption("Initial wave height in downstream calculations is assumed to be 40% of Dam Breach Head")
+    st.markdown("##### Downstream Peak Q and Depth Estimate")
+    st.caption("Initial wave height is assumed to be 40% of Dam Breach Head")
 
     st.dataframe(downstream_df[downstream_df['Mile'] == downstream_mileage],use_container_width=True, hide_index=True)
 
@@ -270,7 +270,7 @@ with tab1:
         x=alt.X('Mile:O', title='Distance Downstream (miles)'),
         y=alt.Y('Peak Discharge (cfs):Q'),
         color='Peak Q Formula:N'
-    ).properties(width=700, height=350)
+    ).properties(width=700, height=350).configure_legend(orient='top')
     st.altair_chart(chart_q, use_container_width=True)
 
 
