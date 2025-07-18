@@ -64,10 +64,10 @@ def highlight_by_damtype(value):
 st.markdown("""
         <style>
                .block-container {
-                    padding-top: 1rem;
+                    padding-top: 2rem;
                     padding-bottom: 0rem;
-                    padding-left: 5rem;
-                    padding-right: 5rem;
+                    padding-left: 4rem;
+                    padding-right: 4rem;
                 }
         </style>
         """, unsafe_allow_html=True)
@@ -78,10 +78,11 @@ st.markdown("An experimental interface with NID to quickly run the LMRFC ROT.")
 # Inputs
 Dh_ft_default = 30.0
 Dv_acft_default = 1000.0
+Dsa_ac_default = 2 * Dv_acft_default/Dh_ft_default
 fedId_default = None
 dam_type_order = ["Earthen", "Concrete Gravity", "Concrete Arch"]
 
-dam_input = st.text_input("Dam Name / NID Id Search:",value="")
+dam_input = st.text_input("NID Search:",value="")
 
 dam_suggests, search_exception = dam_get(dam_input)
 if search_exception:
@@ -94,11 +95,13 @@ if isinstance(dam_suggests, dict) and "dams" in dam_suggests.keys() and dam_sugg
     selection_mode="single-row") 
     if len(damdf_select.selection.rows) > 0:
         fedId_default = dam_suggestion_df.iloc[damdf_select.selection.rows,[3]].values[0][0]
-    else:
-        fedId_default = dam_suggestion_df.iloc[0,[3]].values[0]
-        st.write('Using First Row', fedId_default)
+    #else:
+    #    fedId_default = None #dam_suggestion_df.iloc[0,[3]].values[0]
+        #st.write('Using First Row', fedId_default)
 #Set the federal Id - manually or through the search above as default
 #fedId = st.text_input("NID Id",value=fedId_default)
+
+st.markdown("#### Rules of Thumb Inputs")
 
 if fedId_default != None: 
     dam_query, exception_msg = dam_inventory(fedId_default)
@@ -124,8 +127,13 @@ if fedId_default != None:
         for i in ['maxStorage','nidStorage','normalStorage']:
             if i in col_names and dam_df[i].values[0] != None:
                 Dv_acft_default = dam_df[i].values[0].astype(float)
-                break
-                
+                break       
+        #surface area
+        if dam_df['surfaceArea'].values[0] != None:
+            Dsa_ac = dam_df['maxStorage'].values[0].astype(float)
+        else:
+            Dsa_ac_default = 2 * Dv_acft_default/Dh_ft_default #recalculate based on above
+
         if dam_df['structure_types'].values[0] != None and str.lower(dam_df['structure_types'].values[0]).find('concrete') >= 0:
             dam_type_order = ["Concrete Gravity", "Concrete Arch", "Earthen"]
     except:
@@ -133,20 +141,24 @@ if fedId_default != None:
 
     st.caption('Initial Breach Head is set to NID Dam Height, and Reservoir Volume is set to Max Volume. Click on columns in displayed dataframe to use their values instead. Manually edit info in table as needed.')
 # Inputs 
-#         
+   
+
+
 col1, col2 = st.columns(2)
 
 with col1:
     dam_type = st.selectbox("Dam Type", dam_type_order)
-    Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=Dh_ft_default, step=1.0)
-    tw_width = st.number_input("Max Tailwater Width (ft) - Arch Dams only ", min_value=0.0, value=100.0, step=1.0)    
-
+    Dh_ft = st.number_input("Breach Head (ft)", min_value=0.0, value=Dh_ft_default, step=1.0)     
+    Dsa_ac = st.number_input("Reservoir Surface Area (acres)", min_value=0.0, value=Dsa_ac_default, step=10.0)
 with col2:
     failure_mode = st.selectbox("Failure Mode", ["Overtopping","Piping"])
     Dv_acft = st.number_input("Reservoir Volume (acre-ft)", min_value=0.0, value=Dv_acft_default, step=10.0)
-    erodability = st.selectbox("Dam Erodability - Von Thun Only", ["Erosion Resistant","Easily Erodible"])
+    downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0.0, value=10.0, step=0.1)
 
-downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0.0, value=10.0, step=0.1)
+with st.expander("Max Tailwater width and Erodibility Inputs"):
+    tw_width = st.number_input("Max Tailwater Width (ft) - Arch Dams only ", min_value=0.0, value=100.0, step=1.0)
+    erodability = st.selectbox("Dam Erodability - Von Thun Only", ["Erosion Resistant","Easily Erodible"])
+#downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0.0, value=10.0, step=0.1)
 
 # Constants and conversions
 Dv_m3 = Dv_acft * 1233.48  # Convert to cubic meters - Original rules of thumb uses 1233
@@ -167,6 +179,7 @@ elif (Dv_m3 < 12330000) and (Dv_m3 >= 6165000):
 elif Dv_m3 >= 12330000:
     bw_const = 54.9
 
+#Von Thun breach width
 Bv = round((2.5 * (Dh_m) + bw_const)*3.28,2)
 
 # MacDonald & Langridge-Monopolis breach width and timing
@@ -187,13 +200,14 @@ else:
 
 Tf_smpdbk = Dh_ft / dam_type_bw[dam_type][1] 
 
-# Peak outflow estimates
+# Froehlich Peak outflow estimates
 Qp_froehlich = 0.607 * (Dv_m3 ** 0.295) * (Dh_m ** 1.24)       # m³/s
-#Qp_von_thun = 3.1 * Bv * (Dh_ft ** 1.5)                        # ft³/s
-Qp_smpdbk = 1.4 * (Dv_acft ** 0.5) * (Dh_ft ** 1.5)            # ft³/s
-
 # Convert Froehlich Qp from m³/s to ft³/s
 Qp_froehlich_cfs = Qp_froehlich * 35.3147 # Original rules of thumb uses 35.31
+
+#SMPDBK Peak Ouflow from LMRFC ROT 
+smpdbk_const = (23.4 * Dsa_ac)/Bm
+Qp_smpdbk = (3.1 * Bm) * (smpdbk_const/((Tf_smpdbk/60) + smpdbk_const / (Dh_ft**0.5)))**3.0
 
 # Round results
 results = {
@@ -230,6 +244,9 @@ df = pd.DataFrame(results)
 for i in df.columns[1:]:
     df[i] = df[i].apply(lambda x: '{:.2f}'.format(x))
 
+#Put a dash where nan (Von Thun PeakOutflow)
+df = df.replace("nan","-")
+
 tab1, tab2, tab3 = st.tabs(["Breach Width/Timing, Peak Q", "Travel Time", "Equation Information"])
 
 with tab1:    
@@ -259,20 +276,22 @@ with tab1:
 
 with tab2:
     st.markdown("#### Flood wave Velocity")
-    st.write("Flood wave velocity varies across the county depending upon the slope and vegetation density, but some estiamtes can be made based on historical dam breaks. Except at the Damsite, average downstream speeds of a flood wave are in the range of:")
+    st.write("Flood wave velocity varies across the country depending upon the slope and vegetation density, but some estimates can be made based on historical dam breaks. Except at the dam site, average downstream speeds of a flood wave are in the range of:")
     st.markdown("* 3 to 4 miles per hour for valley areas \n * 5 to 7 miles per hour for foothills\n* 8 to 10 miles per hour for mountainous areas")
     st.markdown("##### Fread Velocity")
+    st.latex('c = (0.005/n) * H^{2/3} * S^{1/2}')
+    st.caption('where c is the wave velocity, H is the dam breach height,n is Mannings, and S is channel bottom slope (ft/mi)')
+    st.write("Using Dam Breach Height (ft): ", Dh_ft)
     manningsn = st.number_input("Manning's n", min_value=0.00, value=0.05, step=0.01)
     slope = st.number_input("Channel slope (ft/mi)", min_value=5.0, value=10.0, step=0.1)
 
     fread = np.round((0.005/manningsn) * Dh_ft**(2/3) * slope**(0.5),2)
     fread_time = np.round(downstream_mileage / fread,2)
 
-    st.write("Using Dam Breach Height(ft): ", Dh_ft)
+   
     st.write("Fread Velocity (mph): ", fread)
-    st.write("Downstream point distance (mi): ", np.round(downstream_mileage,2))
-    st.write("Time to downstream point (hr): ", fread_time)
-
+    st.write("Time to downstream point ("+str(np.round(downstream_mileage,2))+" mi) in hours: ", fread_time)
+    
     st.markdown("##### OHD Velocity")
     st.caption("See Equation info. Uses Wave Height of 40% of Dam Breach head.")
     ohd_v = np.round(3*(Dh_ft*0.4)**0.33)
