@@ -93,11 +93,12 @@ if isinstance(dam_suggests, dict) and "dams" in dam_suggests.keys() and dam_sugg
     dam_suggestion_df = pd.DataFrame(dam_suggests["dams"]).head(10) #limited to top 10
     damdf_select = st.dataframe(dam_suggestion_df[['name','countyState','federalId']],use_container_width=True, hide_index=True,on_select="rerun",
     selection_mode="single-row") 
+   
     if len(damdf_select.selection.rows) > 0:
         fedId_default = dam_suggestion_df.iloc[damdf_select.selection.rows,[3]].values[0][0]
-    #else:
-    #    fedId_default = None #dam_suggestion_df.iloc[0,[3]].values[0]
-        #st.write('Using First Row', fedId_default)
+    else:
+        fedId_default = dam_suggestion_df.iloc[0,[3]].values[0]
+        #st.write('Using top search result: ', fedId_default)
 #Set the federal Id - manually or through the search above as default
 #fedId = st.text_input("NID Id",value=fedId_default)
 
@@ -112,14 +113,17 @@ if fedId_default != None:
     dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea','structure_types','primary_structure_type_id']
     try:
         inputselect = st.dataframe(dam_df[dfcols],use_container_width=True, hide_index=True,on_select='rerun',selection_mode='multi-column')
-    #Selecting Columns to use in Equations
+        #Selecting Columns to use in Equations
         col_names = dam_df[inputselect.selection.columns].columns
-        
-        #Use nidHeight if selected and valid 
+    
+        if dam_df['damHeight'].values[0] != None:        
+            Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
+        elif dam_df['nidHeight'].values[0] != None:
+            Dh_ft_default = dam_df['nidHeight'].values[0].astype(float)
+        #Use nidHeight if selected and valid, otherwise use dam height, then nid height
         if 'nidHeight' in col_names and dam_df['nidHeight'].values[0] != None:
             Dh_ft_default = dam_df['nidHeight'].values[0].astype(float)
-        elif dam_df['damHeight'].values[0] != None:        
-            Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
+       
 
         #Select Storage (defaults to max)
         if dam_df['maxStorage'].values[0] != None:
@@ -127,10 +131,13 @@ if fedId_default != None:
         for i in ['maxStorage','nidStorage','normalStorage']:
             if i in col_names and dam_df[i].values[0] != None:
                 Dv_acft_default = dam_df[i].values[0].astype(float)
-                break       
-        #surface area
+                break
+            if dam_df[i].values[0] != None:
+                Dv_acft_default = dam_df[i].values[0].astype(float)
+
+       #surface area - use if provided otherwise calculate from vol and height 
         if dam_df['surfaceArea'].values[0] != None:
-            Dsa_ac = dam_df['maxStorage'].values[0].astype(float)
+            Dsa_ac_default = dam_df['surfaceArea'].values[0].astype(float)
         else:
             Dsa_ac_default = 2 * Dv_acft_default/Dh_ft_default #recalculate based on above
 
