@@ -110,31 +110,32 @@ if fedId_default != None:
         st.caption(exception_msg)
   
     dam_df = pd.DataFrame(dam_query, index = [0])
-    dfcols = ['name','damHeight', 'damLength', 'maxStorage', 'nidHeight','nidStorage','normalStorage','surfaceArea','structure_types','primary_structure_type_id']
+    heightcols = ['hydraulicHeight','nidHeight','damHeight']  
+    storagecols= ['maxStorage', 'nidStorage','normalStorage']
+    othercols = ['surfaceArea','damLength','structure_types']
     try:
-        inputselect = st.dataframe(dam_df[dfcols],use_container_width=True, hide_index=True,on_select='rerun',selection_mode='multi-column')
-        #Selecting Columns to use in Equations
-        col_names = dam_df[inputselect.selection.columns].columns
-    
-        if dam_df['damHeight'].values[0] != None:        
-            Dh_ft_default = dam_df['damHeight'].values[0].astype(float)
-        elif dam_df['nidHeight'].values[0] != None:
-            Dh_ft_default = dam_df['nidHeight'].values[0].astype(float)
-        #Use nidHeight if selected and valid, otherwise use dam height, then nid height
-        if 'nidHeight' in col_names and dam_df['nidHeight'].values[0] != None:
-            Dh_ft_default = dam_df['nidHeight'].values[0].astype(float)
+        df_title = "Available NID Data for **" + str(dam_df['name'].values[0]+"("+str(dam_df['federalId'].values[0])+")**")
+        st.markdown(df_title)
+        heightselect = st.dataframe(dam_df[heightcols],use_container_width=True, hide_index=True,on_select='rerun',selection_mode='multi-column')
+        storageselect = st.dataframe(dam_df[storagecols],use_container_width=True, hide_index=True,on_select='rerun',selection_mode='multi-column')
+        st.dataframe(dam_df[othercols],use_container_width=True, hide_index=True,on_select='rerun',selection_mode='multi-column')
+               
+        #Select Height (defaults to max)   
+        height_selected = dam_df[heightselect.selection.columns].columns        
+        for i in heightcols[::-1]:#go through in reverse so the last is Hydraulic        
+            if dam_df[i].values[0] != None:
+                Dh_ft_default = dam_df[i].values[0].astype(float)                
+                if i in height_selected:   #if selected then break loop                   
+                    break
        
-
         #Select Storage (defaults to max)
-        if dam_df['maxStorage'].values[0] != None:
-            Dv_acft_default = dam_df['maxStorage'].values[0].astype(float)
-        for i in ['maxStorage','nidStorage','normalStorage']:
-            if i in col_names and dam_df[i].values[0] != None:
-                Dv_acft_default = dam_df[i].values[0].astype(float)
-                break
+        storage_selected = dam_df[storageselect.selection.columns].columns
+        for i in storagecols[::-1]:
             if dam_df[i].values[0] != None:
                 Dv_acft_default = dam_df[i].values[0].astype(float)
-
+                if i in storage_selected:                
+                    break
+           
        #surface area - use if provided otherwise calculate from vol and height 
         if dam_df['surfaceArea'].values[0] != None:
             Dsa_ac_default = dam_df['surfaceArea'].values[0].astype(float)
@@ -167,96 +168,96 @@ with st.expander("Max Tailwater width and Erodibility Inputs"):
     erodability = st.selectbox("Dam Erodability - Von Thun Only", ["Erosion Resistant","Easily Erodible"])
 #downstream_mileage = st.number_input("Downstream Point of Interest (mi)", min_value=0.0, value=10.0, step=0.1)
 
-# Constants and conversions
-Dv_m3 = Dv_acft * 1233.48  # Convert to cubic meters - Original rules of thumb uses 1233
-Dh_m = Dh_ft * 0.3048  # Convert to meters
+lmrfctab ,mbrfctab, tab2, tab3 = st.tabs(["LMRFC", "MBRFC","Travel Time", "Equation Information"])
 
-# Froehlich breach width
-K = 1.0 if failure_mode == "Piping" else 1.4
-Bf = 3.28 * (0.1803 * (K * (Dv_m3 ** 0.32) * (Dh_m ** 0.19)))  # in feet
+with lmrfctab: 
+    # Constants and conversions
+    Dv_m3 = Dv_acft * 1233.48  # Convert to cubic meters - Original rules of thumb uses 1233
+    Dh_m = Dh_ft * 0.3048  # Convert to meters
 
-# Von Thun & Gillette breach width
-#Bv = 1.5 * Dh_ft  # in feet
-if Dv_m3 < 1233000:
-    bw_const = 6.1
-elif (Dv_m3 < 6165000) and (Dv_m3 >= 1233000):
-    bw_const = 18.3
-elif (Dv_m3 < 12330000) and (Dv_m3 >= 6165000):
-    bw_const = 42.7
-elif Dv_m3 >= 12330000:
-    bw_const = 54.9
+    # Froehlich breach width
+    K = 1.0 if failure_mode == "Piping" else 1.4
+    Bf = 3.28 * (0.1803 * (K * (Dv_m3 ** 0.32) * (Dh_m ** 0.19)))  # in feet
 
-#Von Thun breach width
-Bv = round((2.5 * (Dh_m) + bw_const)*3.28,2)
+    # Von Thun & Gillette breach width
+    #Bv = 1.5 * Dh_ft  # in feet
+    if Dv_m3 < 1233000:
+        bw_const = 6.1
+    elif (Dv_m3 < 6165000) and (Dv_m3 >= 1233000):
+        bw_const = 18.3
+    elif (Dv_m3 < 12330000) and (Dv_m3 >= 6165000):
+        bw_const = 42.7
+    elif Dv_m3 >= 12330000:
+        bw_const = 54.9
 
-# MacDonald & Langridge-Monopolis breach width and timing
-dam_type_bw = {"Earthen":[3,10], "Concrete Gravity":[5,40], "Concrete Arch":[0.9,50]}
-#Bm = (0.5 * math.log10(Dv_m3)) + (0.6 * Dh_ft) + 0.5  # in feet
-if dam_type == "Concrete Arch":
-    Bm = dam_type_bw[dam_type][0] * tw_width
-else:
-    Bm = dam_type_bw[dam_type][0] * Dh_ft
+    #Von Thun breach width
+    Bv = round((2.5 * (Dh_m) + bw_const)*3.28,2)
 
-# Breach Formation Time (converted to minutes)
-Tf_froehlich = 0.00254 * (Dv_m3 ** 0.53) * (Dh_m ** -0.90) * 60
+    # MacDonald & Langridge-Monopolis breach width and timing
+    dam_type_bw = {"Earthen":[3,10], "Concrete Gravity":[5,40], "Concrete Arch":[0.9,50]}
+    #Bm = (0.5 * math.log10(Dv_m3)) + (0.6 * Dh_ft) + 0.5  # in feet
+    if dam_type == "Concrete Arch":
+        Bm = dam_type_bw[dam_type][0] * tw_width
+    else:
+        Bm = dam_type_bw[dam_type][0] * Dh_ft
 
-if erodability == "Erosion Resistant":
-    Tf_von_thun = (0.02 * (Dh_m) + 0.25)* 60
-else:
-    Tf_von_thun = 0.015 * Dh_m * 60
+    # Breach Formation Time (converted to minutes)
+    Tf_froehlich = 0.00254 * (Dv_m3 ** 0.53) * (Dh_m ** -0.90) * 60
 
-Tf_smpdbk = Dh_ft / dam_type_bw[dam_type][1] 
+    if erodability == "Erosion Resistant":
+        Tf_von_thun = (0.02 * (Dh_m) + 0.25)* 60
+    else:
+        Tf_von_thun = 0.015 * Dh_m * 60
 
-# Froehlich Peak outflow estimates
-Qp_froehlich = 0.607 * (Dv_m3 ** 0.295) * (Dh_m ** 1.24)       # m³/s
-# Convert Froehlich Qp from m³/s to ft³/s
-Qp_froehlich_cfs = Qp_froehlich * 35.3147 # Original rules of thumb uses 35.31
+    Tf_smpdbk = Dh_ft / dam_type_bw[dam_type][1] 
 
-#SMPDBK Peak Ouflow from LMRFC ROT 
-smpdbk_const = (23.4 * Dsa_ac)/Bm
-Qp_smpdbk = (3.1 * Bm) * (smpdbk_const/((Tf_smpdbk/60) + smpdbk_const / (Dh_ft**0.5)))**3.0
+    # Froehlich Peak outflow estimates
+    Qp_froehlich = 0.607 * (Dv_m3 ** 0.295) * (Dh_m ** 1.24)       # m³/s
+    # Convert Froehlich Qp from m³/s to ft³/s
+    Qp_froehlich_cfs = Qp_froehlich * 35.3147 # Original rules of thumb uses 35.31
 
-# Round results
-results = {
-    "Method": ["Froehlich", "SMPDBK","Von Thun & Gillette" ],
-    "Breach Width (ft)": [round(Bf, 2),round(Bm, 2),round(Bv, 2)],
-    "Formation Time (min)": [round(Tf_froehlich, 2), round(Tf_smpdbk, 2), round(Tf_von_thun, 2)],
-    "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_smpdbk, 2),None]
-}
+    #SMPDBK Peak Ouflow from LMRFC ROT 
+    smpdbk_const = (23.4 * Dsa_ac)/Bm
+    Qp_smpdbk = (3.1 * Bm) * (smpdbk_const/((Tf_smpdbk/60) + smpdbk_const / (Dh_ft**0.5)))**3.0
+
+    # Round results
+    results = {
+        "Method": ["Froehlich", "SMPDBK","Von Thun & Gillette" ],
+        "Breach Width (ft)": [round(Bf, 2),round(Bm, 2),round(Bv, 2)],
+        "Formation Time (min)": [round(Tf_froehlich, 2), round(Tf_smpdbk, 2), round(Tf_von_thun, 2)],
+        "Peak Outflow (cfs)": [round(Qp_froehlich_cfs, 2), round(Qp_smpdbk, 2),None]
+    }
 
 
-# Prepare downstream forecast based on method from OHD (provided by Lee Larson)
-#Note: Unless Ht is observed and reported, it may be estimated as 40% the breach head.
+    # Prepare downstream forecast based on method from OHD (provided by Lee Larson)
+    #Note: Unless Ht is observed and reported, it may be estimated as 40% the breach head.
 
-results_dstrm = []
-for method_name, q_peak in [
-    ("Froehlich", Qp_froehlich_cfs),
-   # ("Von Thun & Gillette", Qp_von_thun),
-    ("SMPDBK", Qp_smpdbk),
-]:
-    for mile in np.append(np.arange(0, downstream_mileage,0.1),downstream_mileage):
-        Qd = 10 ** (np.log10(q_peak) - 0.03 * mile)
-        depth = 10 ** (np.log10(Dh_ft * .4 ) - 0.03 * mile) # same logic as before
-        results_dstrm.append({
-            "Method": method_name,
-            "Mile": mile,
-            "Peak Discharge (cfs)": round(Qd, 2),
-            "Estimated Depth (ft)": round(depth, 2)
-        })
+    results_dstrm = []
+    for method_name, q_peak in [
+        ("Froehlich", Qp_froehlich_cfs),
+    # ("Von Thun & Gillette", Qp_von_thun),
+        ("SMPDBK", Qp_smpdbk),
+    ]:
+        for mile in np.append(np.arange(0, downstream_mileage,0.1),downstream_mileage):
+            Qd = 10 ** (np.log10(q_peak) - 0.03 * mile)
+            depth = 10 ** (np.log10(Dh_ft * .4 ) - 0.03 * mile) # same logic as before
+            results_dstrm.append({
+                "Method": method_name,
+                "Mile": mile,
+                "Peak Discharge (cfs)": round(Qd, 2),
+                "Estimated Depth (ft)": round(depth, 2)
+            })
 
-downstream_df = pd.DataFrame(results_dstrm)
+    downstream_df = pd.DataFrame(results_dstrm)
 
-df = pd.DataFrame(results)
-#Convert to strings before the apply map in order to control the decimals to 2
-for i in df.columns[1:]:
-    df[i] = df[i].apply(lambda x: '{:.2f}'.format(x))
+    df = pd.DataFrame(results)
+    #Convert to strings before the apply map in order to control the decimals to 2
+    for i in df.columns[1:]:
+        df[i] = df[i].apply(lambda x: '{:.2f}'.format(x))
 
-#Put a dash where nan (Von Thun PeakOutflow)
-df = df.replace("nan","-")
-
-tab1, tab2, tab3 = st.tabs(["Breach Width/Timing, Peak Q", "Travel Time", "Equation Information"])
-
-with tab1:    
+    #Put a dash where nan (Von Thun PeakOutflow)
+    df = df.replace("nan","-")
+   
     st.markdown("##### Breach Width, Formation Time, and Peak Q")
     st.caption("Prefered equation highlighted in green based on dam type specified.")
     st.dataframe(df.style.map(highlight_by_damtype,subset=["Method"]), use_container_width=True, hide_index=True)
@@ -280,7 +281,8 @@ with tab1:
     ).properties(width=700, height=350).configure_legend(orient='top')
     st.altair_chart(chart_q, use_container_width=True)
 
-
+with mbrfctab:
+    st.write('Experimental')
 with tab2:
     st.markdown("#### Flood wave Velocity")
     st.write("Flood wave velocity varies across the country depending upon the slope and vegetation density, but some estimates can be made based on historical dam breaks. Except at the dam site, average downstream speeds of a flood wave are in the range of:")
